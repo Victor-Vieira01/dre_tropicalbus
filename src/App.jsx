@@ -4,6 +4,7 @@ const BRAND="#56857A", BRAND_D="#3d6b61", BRAND_L="#e8f2f0";
 const TEXT="#1C1C1C", MUTED="#6b7280", BORDER="#e5e7eb", BG="#fff", BG2="#f9fafb";
 const SIDEBAR_BG="#1C1C1C";
 
+
 const fmt = v => new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
 const fmtPct = v => (v==null||!isFinite(v)) ? "—" : (v>0?"+":"")+v.toFixed(1)+"%";
 const sumObj = o => Object.values(o).reduce((a,v)=>a+v,0);
@@ -44,6 +45,8 @@ const GLOBAL_CSS = `
   .sticky-col{position:sticky;left:0;z-index:2}
   .sticky-header.sticky-col{z-index:5}
   button{min-height:36px}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .spin{animation:spin 1s linear infinite}
 `;
 
 function GlobalStyle() {
@@ -79,7 +82,7 @@ function GlobalStyle() {
 // ── TEMPLATE — copie, cole ao final do array RAW e preencha ────────
 // {
 //   label: "Mmm/AAAA",   // Ex: "Mai/2026"
-//   key:   "AAAA-MM",    // Ex: "2026-05"
+//   key:   "AAAA-MM",    // Ex: "2026-05"  ← formato ISO, sem repetir chaves
 //   ano:    AAAA,        // Ex: 2026
 //   extra:  0,           // Receita Extra informada pelo contador
 //   rec:  { mun: 0, int: 0 },
@@ -99,6 +102,7 @@ function GlobalStyle() {
 // ── FIM DO TEMPLATE ────────────────────────────────────────────────
 
 // ── HISTÓRICO DE COMPETÊNCIAS ─────────────────────────────────────
+// Ordem: cronológica crescente. Não alterar competências já publicadas.
 const RAW = [
   { label:"Jan/2026", key:"2026-01", ano:2026, extra:102000,
     rec:{mun:93822.20,int:361889.29}, ded:{iss:4691.11,pis:2868.13,cof:13237.48,icms:14462.62},
@@ -247,12 +251,12 @@ function buildConsolidado(periodos) {
 }
 
 function ValCell({v,isFinal,isMarco,isGrupo,style={}}) {
+  const isDestaque=isFinal||isMarco;
   const pos=v==null||v>=0;
-  const color=(isFinal||isMarco)?(pos?BRAND_D:"#b91c1c"):v<0?"#b91c1c":"#374151";
+  const color=isDestaque?(pos?"#ffffff":"#fca5a5"):v<0?"#b91c1c":"#374151";
   return (
     <td style={{textAlign:"right",fontSize:isFinal?14:11.5,color,fontWeight:(isFinal||isMarco||isGrupo)?700:400,
-      whiteSpace:"nowrap",padding:isFinal?"12px 12px 12px 4px":"7px 8px 7px 4px",
-      borderTop:isFinal?`2px solid ${BORDER}`:"none",...style}}>
+      whiteSpace:"nowrap",padding:isFinal?"12px 12px 12px 4px":"7px 8px 7px 4px",...style}}>
       {v!=null&&v!==0?(v>=0?"":"-")+"R$ "+fmt(Math.abs(v)):"—"}
     </td>
   );
@@ -281,16 +285,21 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
         <tbody>
           {visRows.map((row,ri)=>{
             const isFinal=row.tipo==="final",isMarco=row.tipo==="marco",isGrupo=row.tipo==="grupo";
-            const bg=isFinal?BRAND_L:isMarco?BRAND_L:isGrupo?"#f0f4f3":row.extra?"#f0faf6":ri%2===0?BG:"#F5F5F5";
-            const co=isFinal?BRAND_D:isMarco?BRAND_D:TEXT;
+            // Hierarquia de fundos:
+            // Final / Marco (subtotais) → verde escuro BRAND_D, texto branco
+            // Grupo (títulos de seção) → verde claro BRAND_L, texto BRAND_D
+            // Linhas analíticas → zebra branco/#F5F5F5
+            const bg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:ri%2===0?BG:"#F5F5F5";
+            const co=isFinal?"#ffffff":isMarco?"#ffffff":isGrupo?BRAND_D:TEXT;
             const fw=(isFinal||isMarco||isGrupo)?700:400;
             const fs=isFinal?14:isMarco?12.5:12;
             return (
-              <tr key={row.id+ri} style={{background:bg,borderBottom:`1px solid ${BORDER}`}}>
+              <tr key={row.id+ri} style={{background:bg,borderBottom:`1px solid ${isMarco||isFinal?"transparent":BORDER}`}}>
                 <td onClick={isGrupo?()=>toggleGrupo(row.id):undefined} className="sticky-col col-label"
                   style={{padding:isFinal?"12px 14px":isMarco?"10px 14px":"7px 14px",fontSize:fs,color:co,fontWeight:fw,background:bg,
-                    borderRight:`1px solid ${BORDER}`,borderLeft:(isFinal||isMarco)?`3px solid ${BRAND}`:"3px solid transparent",
-                    borderTop:isFinal?`2px solid ${BORDER}`:"none",cursor:isGrupo?"pointer":"default",
+                    borderRight:`1px solid ${isMarco||isFinal?"rgba(255,255,255,0.15)":BORDER}`,
+                    borderLeft:(isFinal||isMarco||isGrupo)?`3px solid ${isFinal||isMarco?"rgba(255,255,255,0.4)":BRAND}`:"3px solid transparent",
+                    cursor:isGrupo?"pointer":"default",
                     whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                   {isGrupo&&<i className={`ti ${collapsed.has(row.id)?"ti-chevron-right":"ti-chevron-down"}`} style={{marginRight:6,fontSize:10,color:BRAND}}/>}
                   {row.extra&&<i className="ti ti-plus-circle" style={{fontSize:10,marginRight:5,color:BRAND}}/>}
@@ -298,23 +307,33 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
                 </td>
                 {periodos.map((_,pi)=>{
                   const v=maps[pi][row.id]??null, vP=pi>0?(maps[pi-1][row.id]??null):null;
-                  const diff=(v!=null&&vP!=null)?v-vP:null, ahPct=(diff!=null&&vP!==0)?(diff/Math.abs(vP))*100:null;
-                  const fav=diff!=null?(row.isFav?diff>=0:diff<=0):null;
-                  const ahC=(pi===0||isGrupo||fav===null)?"#9ca3af":fav?"#15803d":"#b91c1c";
-                  const ahBg=(!isGrupo&&ahPct!=null&&Math.abs(ahPct)>20)?(fav?"#f0faf6":"#fff5f5"):"transparent";
-                  const bT=isFinal?`2px solid ${BORDER}`:"none";
+                  const diff=(v!=null&&vP!=null)?v-vP:null;
+                  // Para despesas (isFav:false), os valores são negativos internamente.
+                  // O sinal deve ser matemático em relação ao custo real:
+                  // despesa maior → diff negativo → sinal deve aparecer como +
+                  // Invertemos o diff para despesas antes de calcular o percentual.
+                  const diffDisplay=(diff!=null&&row.tipo==="linha"&&!row.isFav)?-diff:diff;
+                  const ahPct=(diffDisplay!=null&&vP!==0)?(diffDisplay/Math.abs(vP))*100:null;
+                  let ahC=isFinal||isMarco?"rgba(255,255,255,0.5)":"#9ca3af";
+                  if(pi>0&&!isGrupo&&ahPct!=null&&row.tipo==="linha"){
+                    // ahPct já tem sinal matemático correto para ambos (receitas e despesas)
+                    // Receita: + = favorável (verde). Despesa: + = desfavorável (vermelho)
+                    const sinalizaFavoravel=row.isFav?(ahPct>0):(ahPct<0);
+                    ahC=sinalizaFavoravel?"#15803d":"#b91c1c";
+                  }
+                  const sep=isMarco||isFinal?"rgba(255,255,255,0.15)":BORDER;
                   return [
-                    <ValCell key={"v"+pi} v={v} isFinal={isFinal} isMarco={isMarco} style={{borderTop:bT}}/>,
-                    <td key={"a"+pi} style={{padding:isFinal?"12px 5px":"7px 5px",textAlign:"center",fontSize:10,fontWeight:500,color:ahC,background:ahBg,whiteSpace:"nowrap",borderTop:bT,borderRight:pi<periodos.length-1?`1px solid ${BORDER}`:"none"}}>
+                    <ValCell key={"v"+pi} v={v} isFinal={isFinal} isMarco={isMarco} style={{background:bg,borderRight:`1px solid ${sep}`}}/>,
+                    <td key={"a"+pi} style={{padding:isFinal?"12px 5px":"7px 5px",textAlign:"center",fontSize:10,fontWeight:700,color:ahC,background:bg,whiteSpace:"nowrap",borderRight:pi<periodos.length-1?`1px solid ${sep}`:"none"}}>
                       {(pi===0||isGrupo)?"—":fmtPct(ahPct)}
                     </td>,
                   ];
                 })}
                 {(()=>{
                   const tot=consolidado[row.id]??null;
-                  const tBg=isFinal?BRAND_L:isMarco?BRAND_L:isGrupo?"#e8eded":"#f4f7f6";
+                  const tBg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:"#f4f7f6";
                   return <ValCell v={tot} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo}
-                    style={{borderLeft:"2px solid #d1dbd8",background:tBg,borderTop:isFinal?`2px solid ${BORDER}`:"none",padding:isFinal?"12px 12px":"7px 12px"}}/>;
+                    style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>;
                 })()}
               </tr>
             );
@@ -337,8 +356,8 @@ function DREPage() {
     <div style={{padding:"18px 20px",display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8,flexShrink:0}}>
         <div>
-          <p style={{fontSize:12,color:MUTED,margin:0,textTransform:"uppercase",letterSpacing:"0.6px"}}>Demonstração do Resultado · Série Histórica</p>
-          <h2 style={{fontSize:22,fontWeight:500,color:TEXT,margin:"2px 0 0"}}>DRE Gerencial</h2>
+          <p style={{fontSize:11,color:MUTED,margin:0,textTransform:"uppercase",letterSpacing:"0.6px"}}>Demonstração do Resultado · Série Histórica</p>
+          <h2 style={{fontSize:18,fontWeight:500,color:TEXT,margin:"2px 0 0"}}>DRE Gerencial</h2>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <span style={{fontSize:12,color:MUTED}}>Exercício:</span>
@@ -386,7 +405,7 @@ const CMB_EST=[
   {tipo:"linha",id:"rast",label:"  Rastreamento",isFav:false},{tipo:"linha",id:"detro_t",label:"  DETRO – Taxa",isFav:false},
   {tipo:"linha",id:"detro_i",label:"  DETRO – Incorporação",isFav:false},{tipo:"linha",id:"seguro",label:"  Seguro",isFav:false},
   {tipo:"linha",id:"depre",label:"  Depreciação",isFav:false},{tipo:"linha",id:"depre_ac",label:"  Depreciação Acelerada",isFav:false},
-  {tipo:"final",id:"res_econ",label:"RESULTADO OPERACIONAL LÍQUIDO"},
+  {tipo:"final",id:"res_econ",label:"LUCRO LÍQUIDO"},
 ];
 const DESP_IDS=["diesel","arla","pedagio","sal","sal_rat","pf_sal","pf_folg","inss","fgts","irrf","va","vt","vcomb","comb_rat","prov_fer","prov_13","prov_fgt","prov_mul","prov_av","prov_aav","prov_var","comis","alug","energia","tel","fianca","rast","detro_t","detro_i","seguro","depre","depre_ac"];
 const DED_IDS=["simples","irpj","csll","pis","cofins","iss","aj_rec"];
@@ -434,7 +453,7 @@ function CMBPage() {
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8,flexShrink:0}}>
         <div>
           <p style={{fontSize:11,color:MUTED,margin:0,textTransform:"uppercase",letterSpacing:"0.6px"}}>Contrato 1821/2025 · Casa da Moeda do Brasil</p>
-          <h2 style={{fontSize:22,fontWeight:500,color:TEXT,margin:"2px 0 0"}}>DRE Contrato CMB</h2>
+          <h2 style={{fontSize:18,fontWeight:500,color:TEXT,margin:"2px 0 0"}}>DRE Contrato CMB</h2>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:12,color:MUTED}}>Competência:</span>
@@ -447,45 +466,41 @@ function CMBPage() {
         <table className="cmb-table">
           <thead>
             <tr style={{background:SIDEBAR_BG}} className="sticky-header">
-              <th className="sticky-col sticky-header cmb-col-label" style={{padding:"8px 14px",textAlign:"left",fontSize:13,color:"#fff",fontWeight:500,textTransform:"uppercase",letterSpacing:"0.4px",background:SIDEBAR_BG,borderRight:"1px solid #2a2a2a"}}>Conta</th>
+              <th className="sticky-col sticky-header cmb-col-label" style={{padding:"10px 14px",textAlign:"left",fontSize:13,color:"#fff",fontWeight:500,textTransform:"uppercase",letterSpacing:"0.5px",background:SIDEBAR_BG,borderRight:"1px solid #2a2a2a"}}>Conta</th>
               {CMB_ESCALAS.map((e,i)=>(
-                <th key={e.id} className="cmb-col-val" style={{padding:"6px 8px 2px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:600,whiteSpace:"nowrap",borderRight:i<CMB_ESCALAS.length-1?"1px solid #2a2a2a":"none"}}>{e.label}</th>
+                <th key={e.id} className="cmb-col-val" style={{padding:"10px 8px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:500,whiteSpace:"nowrap",borderRight:i<CMB_ESCALAS.length-1?"1px solid #2a2a2a":"none"}}>{e.label}<br/><span style={{fontSize:10,fontWeight:400,color:"#888"}}>{e.sub}</span></th>
               ))}
-              <th className="cmb-col-total" style={{padding:"6px 12px 2px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:700,borderLeft:"2px solid #2a2a2a",background:"#2a2a2a",whiteSpace:"nowrap"}}>Total</th>
-            </tr>
-            <tr style={{background:"#2a2a2a"}} className="sticky-header">
-              <th className="sticky-col cmb-col-label" style={{padding:"2px 14px 8px",background:BRAND_D,borderRight:`1px solid ${BRAND_D}`}}/>
-              {CMB_ESCALAS.map((e,i)=>(
-                <th key={e.id} className="cmb-col-val" style={{padding:"2px 8px 8px",textAlign:"right",fontSize:10,color:"#c8e6e0",fontWeight:400,whiteSpace:"nowrap",borderRight:i<CMB_ESCALAS.length-1?`1px solid ${BRAND_D}`:"none"}}>{e.sub}</th>
-              ))}
-              <th className="cmb-col-total" style={{padding:"2px 12px 8px",textAlign:"right",fontSize:10,color:"#d1ede8",fontWeight:400,background:BRAND_D}}>{per.label}</th>
+              <th className="cmb-col-total" style={{padding:"10px 12px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:700,borderLeft:"2px solid #2a2a2a",background:"#2a2a2a",whiteSpace:"nowrap"}}>Total<br/><span style={{fontSize:10,fontWeight:400,color:"#888"}}>{per.label}</span></th>
             </tr>
           </thead>
           <tbody>
             {vis.map((row,ri)=>{
               const isFinal=row.tipo==="final",isMarco=row.tipo==="marco",isGrupo=row.tipo==="grupo";
-              const bg=isFinal?BRAND_L:isMarco?BRAND_L:isGrupo?"#f0f4f3":ri%2===0?BG:"#F5F5F5";
-              const co=isFinal?BRAND_D:isMarco?BRAND_D:TEXT;
+              // Mesma hierarquia da DRE Geral
+              const bg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:ri%2===0?BG:"#F5F5F5";
+              const co=isFinal?"#ffffff":isMarco?"#ffffff":isGrupo?BRAND_D:TEXT;
               const fw=(isFinal||isMarco||isGrupo)?700:400;
               const fs=isFinal?14:isMarco?12.5:12;
+              const sep=isMarco||isFinal?"rgba(255,255,255,0.15)":BORDER;
               return (
-                <tr key={row.id+ri} style={{background:bg,borderBottom:`1px solid ${BORDER}`}}>
+                <tr key={row.id+ri} style={{background:bg,borderBottom:`1px solid ${isMarco||isFinal?"transparent":BORDER}`}}>
                   <td onClick={isGrupo?()=>toggleG(row.id):undefined} className="sticky-col cmb-col-label"
                     style={{padding:isFinal?"12px 14px":isMarco?"10px 14px":"7px 14px",fontSize:fs,color:co,fontWeight:fw,background:bg,
-                      borderRight:`1px solid ${BORDER}`,borderLeft:(isFinal||isMarco)?`3px solid ${BRAND}`:"3px solid transparent",
-                      borderTop:isFinal?`2px solid ${BORDER}`:"none",cursor:isGrupo?"pointer":"default",
+                      borderRight:`1px solid ${sep}`,
+                      borderLeft:(isFinal||isMarco||isGrupo)?`3px solid ${isFinal||isMarco?"rgba(255,255,255,0.4)":BRAND}`:"3px solid transparent",
+                      cursor:isGrupo?"pointer":"default",
                       whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                     {isGrupo&&<i className={`ti ${col.has(row.id)?"ti-chevron-right":"ti-chevron-down"}`} style={{marginRight:6,fontSize:10,color:BRAND}}/>}
                     {row.label}
                   </td>
                   {CMB_ESCALAS.map((e,ei)=>{
                     const v=getV(row,e.id);
-                    return <ValCell key={e.id} v={v} isFinal={isFinal} isMarco={isMarco} style={{borderRight:ei<CMB_ESCALAS.length-1?`1px solid ${BORDER}`:"none"}}/>;
+                    return <ValCell key={e.id} v={v} isFinal={isFinal} isMarco={isMarco} style={{borderRight:ei<CMB_ESCALAS.length-1?`1px solid ${sep}`:"none",background:bg}}/>;
                   })}
                   {(()=>{
                     const v=getV(row,null);
-                    const tBg=isFinal?BRAND_L:isMarco?BRAND_L:isGrupo?"#e8eded":"#f4f7f6";
-                    return <ValCell v={v} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} style={{borderLeft:"2px solid #d1dbd8",background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>;
+                    const tBg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:"#f4f7f6";
+                    return <ValCell v={v} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>;
                   })()}
                 </tr>
               );
@@ -510,7 +525,14 @@ function LogoElim({ collapsed }) {
   }
   return (
     <svg width="125" height="44" viewBox="0 0 125 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <text x="0" y="38" fontFamily="'Helvetica Neue',Helvetica,Arial,sans-serif" fontWeight="300" fontSize="44" fill="#ffffff" letterSpacing="2">Elim</text>
+      <text
+        x="0" y="38"
+        fontFamily="'Helvetica Neue',Helvetica,Arial,sans-serif"
+        fontWeight="300"
+        fontSize="44"
+        fill="#ffffff"
+        letterSpacing="2"
+      >Elim</text>
       <circle cx="100" cy="34" r="6" fill="#1e7a5a"/>
     </svg>
   );
@@ -533,6 +555,7 @@ export default function App() {
         <div className={`sidebar ${sideOpen?"":"collapsed"} ${mobileOpen?"mobile-open":""}`}>
           <div style={{padding:sideOpen?"20px 16px 16px":"20px 10px 16px",borderBottom:"1px solid #2a2a2a",minHeight:64,display:"flex",alignItems:"center"}}>
             <LogoElim collapsed={!sideOpen}/>
+            <span style={{display:"none",color:"#fff",fontSize:13,fontWeight:600}}>Elim Consultores</span>
           </div>
           <nav style={{flex:1,padding:"10px 0"}}>
             {PAGES.map(p=>(
