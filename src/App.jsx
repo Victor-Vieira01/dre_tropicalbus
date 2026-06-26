@@ -89,7 +89,7 @@ function GlobalStyle() {
 //   ded:  { iss: 0, pis: 0, cof: 0, icms: 0 },
 //   cus:  { man: 0, com: 0, ped: 0 },
 //   tri:  { ipva: 0, alv: 0, difal: 0, ipi: 0, autos: 0, pisT: 0, cofT: 0 },
-//   ger:  { alug: 0, tel: 0, pj: 0, soft: 0, matE: 0, brin: 0, fret: 0,
+//   ger:  { alug: 0, tel: 0, pj: 0, soft: 0, matE: 0, movUtl: 0, brin: 0, fret: 0,
 //           lanch: 0, segV: 0, div: 0, cont: 0, adm: 0, adv: 0,
 //           rast: 0, pred: 0, mult: 0 },
 //   pes:  { sal: 0, hext: 0, ins: 0, not: 0, grat: 0, vt: 0, va: 0,
@@ -108,7 +108,7 @@ const RAW = [
     rec:{mun:93822.20,int:361889.29}, ded:{iss:4691.11,pis:2868.13,cof:13237.48,icms:14462.62},
     cus:{man:64406.88,com:99225.00,ped:14637.02},
     tri:{ipva:17424.30,alv:4839.02,difal:2310.13,ipi:0,autos:0,pisT:0,cofT:0},
-    ger:{alug:1100,tel:521.86,pj:2450,soft:560.01,matE:389.39,brin:1560,fret:78.98,lanch:0,segV:8221.34,div:659.49,cont:13860.04,adm:7848.33,adv:506,rast:2019,pred:756,mult:0},
+    ger:{alug:1100,tel:521.86,pj:2450,soft:560.01,matE:389.39,movUtl:0,brin:1560,fret:78.98,lanch:0,segV:8221.34,div:659.49,cont:13860.04,adm:7848.33,adv:506,rast:2019,pred:756,mult:0},
     pes:{sal:63615.98,hext:813.72,ins:972.60,not:68.64,grat:700,vt:1983.10,va:8406.97,med:11918.96,fer:9152.44,dec:6164.75,inss:18942.14,fgts:5453.34,dsr:538.11,sst:45,adF:1622.40,outP:2278.53,grF:500},
     enc:{av:10784.22,falt:2755.97,out:3867.52}, dfin:{tar:169.10,jmul:7912.03,enc:40837.21,desc:0},
     rfin:{desc:183.91,jap:74.87,jObt:0,rest:308.50,varM:4688.26} },
@@ -116,7 +116,7 @@ const RAW = [
     rec:{mun:59727.00,int:353490.00}, ded:{iss:2986.35,pis:2589.48,cof:11951.40,icms:14836.70},
     cus:{man:50817.48,com:100765.00,ped:16595.72},
     tri:{ipva:17424.30,alv:12597.17,difal:1584.99,ipi:41.83,autos:0,pisT:0,cofT:0},
-    ger:{alug:1100,tel:630.96,pj:4580,soft:172.61,matE:0,brin:1560,fret:39.49,lanch:1017.97,segV:8265.88,div:172.65,cont:13860.04,adm:7848.33,adv:506,rast:2019,pred:756,mult:0},
+    ger:{alug:1100,tel:630.96,pj:4580,soft:172.61,matE:0,movUtl:0,brin:1560,fret:39.49,lanch:1017.97,segV:8265.88,div:172.65,cont:13860.04,adm:7848.33,adv:506,rast:2019,pred:756,mult:0},
     pes:{sal:57112.32,hext:421.56,ins:972.60,not:32.15,grat:700,vt:1910.80,va:7639.80,med:0,fer:6787.03,dec:5313.65,inss:19037.85,fgts:5285.74,dsr:75.62,sst:225,adF:1622.40,outP:62.25,grF:500},
     enc:{av:7189.48,falt:0,out:2478.27}, dfin:{tar:159.00,jmul:3723.23,enc:40837.21,desc:0.01},
     rfin:{desc:3524.24,jap:54.21,jObt:17.01,rest:0,varM:3702.22} },
@@ -124,7 +124,7 @@ const RAW = [
     rec:{mun:186242.03,int:304759.17}, ded:{iss:9312.10,pis:3127.61,cof:14435.19,icms:9827.74},
     cus:{man:50477.06,com:262457.05,ped:14475.11},
     tri:{ipva:17242.30,alv:7196.03,difal:1016.13,ipi:49.61,autos:3543.17,pisT:27.25,cofT:167.70},
-    ger:{alug:1100,tel:641.96,pj:0,soft:1231.10,matE:0,brin:0,fret:44.82,lanch:0,segV:7755.10,div:885,cont:13860.04,adm:7848.33,adv:694.40,rast:2019,pred:3841.90,mult:0},
+    ger:{alug:1100,tel:641.96,pj:0,soft:1231.10,matE:0,movUtl:0,brin:0,fret:44.82,lanch:0,segV:7755.10,div:885,cont:13860.04,adm:7848.33,adv:694.40,rast:2019,pred:3841.90,mult:0},
     pes:{sal:56338.61,hext:1549.02,ins:972.60,not:504.98,grat:700,vt:3126.40,va:10992.46,med:11918.96,fer:9953.26,dec:6324.95,inss:23068.01,fgts:6358.80,dsr:525.10,sst:733,adF:1622.40,outP:862.13,grF:500},
     enc:{av:0,falt:54.47,out:383.86}, dfin:{tar:194.43,jmul:4818.65,enc:40837.21,desc:0.50},
     rfin:{desc:3129.29,jap:24.73,jObt:0,rest:0,varM:4192.64} },
@@ -132,10 +132,18 @@ const RAW = [
     rec:{mun:258650.27,int:406593.59}, ded:{iss:15168.91,pis:4230.93,cof:19527.37,icms:14331.65},
     cus:{man:117004.80,com:146574.98,ped:16243.00},
     tri:{ipva:25067.20,alv:15013.64,difal:1551.20,ipi:101.61,autos:1093.68,pisT:23.73,cofT:146.04},
-    ger:{alug:1100,tel:694.64,pj:1130.80,soft:489.10,matE:479.85,brin:3120,fret:401.08,lanch:0,segV:6951.66,div:2.50,cont:13860.04,adm:7848.33,adv:479.70,rast:2019,pred:4865.13,mult:1042.29},
+    ger:{alug:1100,tel:694.64,pj:1130.80,soft:489.10,matE:479.85,movUtl:0,brin:3120,fret:401.08,lanch:0,segV:6951.66,div:2.50,cont:13860.04,adm:7848.33,adv:479.70,rast:2019,pred:4865.13,mult:1042.29},
     pes:{sal:72113.05,hext:4147.77,ins:972.60,not:844.02,grat:700,vt:2946.40,va:9523.00,med:11918.96,fer:9200.68,dec:7202.47,inss:28519.88,fgts:8033.04,dsr:1956.79,sst:1763,adF:1622.40,outP:1197.40,grF:500},
     enc:{av:0,falt:0,out:2289.09}, dfin:{tar:176.00,jmul:6926.16,enc:40837.21,desc:0},
     rfin:{desc:3728.35,jap:9.37,jObt:0,rest:0,varM:2235.83} },
+  { label:"Mai/2026", key:"2026-05", ano:2026, extra:205991.39,
+    rec:{mun:350779.63,int:423596.77}, ded:{iss:17538.99,pis:5216.29,cof:22816.80,icms:15718.17},
+    cus:{man:87630.55,com:157836.18,ped:17301.64},
+    tri:{ipva:21214.30,alv:10115.68,difal:992.58,ipi:94.98,autos:208.26,pisT:18.83,cofT:115.86},
+    ger:{alug:1100,tel:622.87,pj:200,soft:513.10,matE:0,movUtl:979,brin:0,fret:64.06,lanch:1620.48,segV:6380.77,div:7.50,cont:13860.04,adm:7848.33,adv:864.53,rast:2019,pred:0,mult:0},
+    pes:{sal:80327.49,hext:3771.69,ins:972.60,not:865.46,grat:700,vt:3161.20,va:10682.17,med:11918.96,fer:9863.99,dec:7649.56,inss:29905.76,fgts:8445.12,dsr:1515.53,sst:0,adF:1622.40,outP:2275.06,grF:500},
+    enc:{av:3594.74,falt:1437.90,out:5500.55}, dfin:{tar:184.00,jmul:4315.00,enc:40837.21,desc:0},
+    rfin:{desc:1800.81,jap:3.65,jObt:0,rest:0,varM:2896.64} },
   // ← PRÓXIMA COMPETÊNCIA: cole o bloco do template aqui
 ];
 
@@ -152,7 +160,7 @@ function calcP(p) {
 }
 const CALCS=RAW.map(p=>({...p,c:calcP(p)}));
 
-const CANONICAL_ORDER=["g_rec","mun","int","extra","recBruta","g_ded","iss","pis","cof","icms","recLiq","g_cus","man","com","ped","resBruto","g_tri","ipva","alv","difal","ipi","autos","pisT","cofT","g_ger","alug","tel","pj","soft","matE","brin","fret","lanch","segV","div","cont","admG","adv","rast","pred","mult","g_pes","sal","hext","ins","not","grat","vt","va","med","fer","dec","inss","fgts","dsr","sst","adF","outP","grF","g_enc","av","falt","out","ebitda","g_dfin","tar","jmul","encF","descC","g_rfin","descO","jap","jObt","rest","varM","lucLiq"];
+const CANONICAL_ORDER=["g_rec","mun","int","extra","recBruta","g_ded","iss","pis","cof","icms","recLiq","g_cus","man","com","ped","resBruto","g_tri","ipva","alv","difal","ipi","autos","pisT","cofT","g_ger","alug","tel","pj","soft","matE","movUtl","brin","fret","lanch","segV","div","cont","admG","adv","rast","pred","mult","g_pes","sal","hext","ins","not","grat","vt","va","med","fer","dec","inss","fgts","dsr","sst","adF","outP","grF","g_enc","av","falt","out","ebitda","g_dfin","tar","jmul","encF","descC","g_rfin","descO","jap","jObt","rest","varM","lucLiq"];
 
 function getDRERows(p) {
   const c=p.c; const rows=[]; const add=(t,id,l,v,o={})=>rows.push({tipo:t,id,label:l,valor:v,...o});
@@ -186,6 +194,7 @@ function getDRERows(p) {
   if(p.ger.pj>0)   add("linha","pj","  Serviços PJ",-p.ger.pj,{isFav:false});
   add("linha","soft","  Licenças de Software",-p.ger.soft,{isFav:false});
   if(p.ger.matE>0) add("linha","matE","  Material de Escritório",-p.ger.matE,{isFav:false});
+  if(p.ger.movUtl>0) add("linha","movUtl","  Móveis e Utensílios de Pequeno Valor",-p.ger.movUtl,{isFav:false});
   if(p.ger.brin>0) add("linha","brin","  Despesas com Brinde",-p.ger.brin,{isFav:false});
   add("linha","fret","  Fretes e Transportes",-p.ger.fret,{isFav:false});
   if(p.ger.lanch>0) add("linha","lanch","  Lanches e Refeições",-p.ger.lanch,{isFav:false});
@@ -587,7 +596,7 @@ export default function App() {
               <p className="topbar-label-short" style={{fontSize:12,color:MUTED,margin:0,display:"none"}}>Tropical Bus</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-              <span className="period-badge" style={{fontSize:11,background:BRAND_L,color:BRAND_D,padding:"3px 10px",borderRadius:20,fontWeight:500,whiteSpace:"nowrap"}}>Jan–Abr/2026</span>
+              <span className="period-badge" style={{fontSize:11,background:BRAND_L,color:BRAND_D,padding:"3px 10px",borderRadius:20,fontWeight:500,whiteSpace:"nowrap"}}>Jan–Mai/2026</span>
               <div style={{width:30,height:30,borderRadius:"50%",background:BRAND,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:"#fff"}}>TB</div>
             </div>
           </div>
