@@ -7,6 +7,8 @@ const SIDEBAR_BG="#1C1C1C";
 
 const fmt = v => new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
 const fmtPct = v => (v==null||!isFinite(v)) ? "—" : (v>0?"+":"")+v.toFixed(1)+"%";
+// Análise Vertical: percentual sobre a Receita Bruta, mantendo o sinal da linha (sem "+")
+const fmtAv = v => (v==null||!isFinite(v)) ? "—" : v.toFixed(1)+"%";
 const sumObj = o => Object.values(o).reduce((a,v)=>a+v,0);
 
 const GLOBAL_CSS = `
@@ -36,10 +38,12 @@ const GLOBAL_CSS = `
   .col-label{min-width:180px;width:22%}
   .col-val{min-width:100px}
   .col-ah{min-width:50px;width:5%}
+  .col-av{min-width:50px;width:5%}
   .col-total{min-width:110px}
   .cmb-table{border-collapse:collapse;width:100%;min-width:820px;table-layout:auto}
   .cmb-col-label{min-width:180px;width:20%}
   .cmb-col-val{min-width:90px}
+  .cmb-col-av{min-width:50px}
   .cmb-col-total{min-width:100px}
   .sticky-header{position:sticky;top:0;z-index:3}
   .sticky-col{position:sticky;left:0;z-index:2}
@@ -282,6 +286,27 @@ function ValCell({v,isFinal,isMarco,isGrupo,style={}}) {
   );
 }
 
+// Célula de Análise Vertical (AV%): percentual da linha sobre a Receita Bruta do período
+function AvCell({v,base,isFinal,isMarco,isGrupo,bg,style={}}) {
+  const pct=(!isGrupo&&v!=null&&v!==0&&base)?(v/base)*100:null;
+  const color=(isFinal||isMarco)?"rgba(255,255,255,0.85)":"#6b7280";
+  return (
+    <td style={{padding:isFinal?"12px 5px":"7px 5px",textAlign:"center",fontSize:10,fontWeight:(isFinal||isMarco)?700:600,color,background:bg,whiteSpace:"nowrap",...style}}>
+      {fmtAv(pct)}
+    </td>
+  );
+}
+
+// Rodapé padrão — idêntico em todas as abas
+function Rodape() {
+  return (
+    <p style={{fontSize:11,color:"#9ca3af",marginTop:6,textAlign:"right",flexShrink:0,lineHeight:1.5}}>
+      AV% = análise vertical (% sobre a Receita Bruta do período) · AH% = análise horizontal (variação sobre o mês anterior)<br/>
+      Elim Consultores · elimconsultores.cnt.br · CNPJ. 38.261.490/0001-52
+    </p>
+  );
+}
+
 function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrupo}) {
   let curGrupo=null; const visRows=[];
   canonical.forEach(r=>{
@@ -289,6 +314,7 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
     else if(r.tipo==="marco"||r.tipo==="final"){visRows.push({...r});}
     else{if(!collapsed.has(curGrupo))visRows.push({...r});}
   });
+  const baseTotal=consolidado.recBruta;
   return (
     <div className="table-scroll">
       <table className="dre-table">
@@ -297,9 +323,11 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
             <th className="sticky-col sticky-header col-label" style={{padding:"10px 14px",textAlign:"left",fontSize:13,color:"#fff",fontWeight:500,textTransform:"uppercase",letterSpacing:"0.5px",background:SIDEBAR_BG,borderRight:"1px solid #2a2a2a"}}>Conta</th>
             {periodos.map((p,i)=>[
               <th key={"hv"+i} className="col-val" style={{padding:"10px 8px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:500,whiteSpace:"nowrap"}}>{p.label}</th>,
+              <th key={"hav"+i} className="col-av" style={{padding:"10px 5px",textAlign:"center",fontSize:11,color:"#888",fontWeight:400}}>AV%</th>,
               <th key={"ha"+i} className="col-ah" style={{padding:"10px 5px",textAlign:"center",fontSize:11,color:"#888",fontWeight:400,borderRight:i<periodos.length-1?"1px solid #2a2a2a":"none"}}>AH%</th>,
             ])}
             <th className="col-total" style={{padding:"10px 12px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:700,whiteSpace:"nowrap",borderLeft:"2px solid #2a2a2a",background:"#2a2a2a"}}>Total {ano}</th>
+            <th className="col-av" style={{padding:"10px 5px",textAlign:"center",fontSize:11,color:"#888",fontWeight:400,background:"#2a2a2a"}}>AV%</th>
           </tr>
         </thead>
         <tbody>
@@ -343,7 +371,8 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
                   }
                   const sep=isMarco||isFinal?"rgba(255,255,255,0.15)":BORDER;
                   return [
-                    <ValCell key={"v"+pi} v={v} isFinal={isFinal} isMarco={isMarco} style={{background:bg,borderRight:`1px solid ${sep}`}}/>,
+                    <ValCell key={"v"+pi} v={v} isFinal={isFinal} isMarco={isMarco} style={{background:bg}}/>,
+                    <AvCell key={"av"+pi} v={v} base={maps[pi].recBruta} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} bg={bg}/>,
                     <td key={"a"+pi} style={{padding:isFinal?"12px 5px":"7px 5px",textAlign:"center",fontSize:10,fontWeight:700,color:ahC,background:bg,whiteSpace:"nowrap",borderRight:pi<periodos.length-1?`1px solid ${sep}`:"none"}}>
                       {(pi===0||isGrupo)?"—":fmtPct(ahPct)}
                     </td>,
@@ -352,8 +381,11 @@ function DREMensal({periodos,canonical,maps,consolidado,ano,collapsed,toggleGrup
                 {(()=>{
                   const tot=consolidado[row.id]??null;
                   const tBg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:"#f4f7f6";
-                  return <ValCell v={tot} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo}
-                    style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>;
+                  return [
+                    <ValCell key="tv" v={tot} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo}
+                      style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>,
+                    <AvCell key="ta" v={tot} base={baseTotal} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} bg={tBg}/>,
+                  ];
                 })()}
               </tr>
             );
@@ -387,7 +419,7 @@ function DREPage() {
         </div>
       </div>
       <DREMensal periodos={periodos} canonical={canonical} maps={maps} consolidado={consolidado} ano={ano} collapsed={collapsed} toggleGrupo={toggleGrupo}/>
-      <p style={{fontSize:11,color:"#9ca3af",marginTop:6,textAlign:"right",flexShrink:0}}>Elim Consultoria Tributária &amp; Empresarial · DRE Gerencial · Exercício {ano}</p>
+      <Rodape/>
     </div>
   );
 }
@@ -517,10 +549,12 @@ function CMBPage() {
           <thead>
             <tr style={{background:SIDEBAR_BG}} className="sticky-header">
               <th className="sticky-col sticky-header cmb-col-label" style={{padding:"10px 14px",textAlign:"left",fontSize:13,color:"#fff",fontWeight:500,textTransform:"uppercase",letterSpacing:"0.5px",background:SIDEBAR_BG,borderRight:"1px solid #2a2a2a"}}>Conta</th>
-              {CMB_ESCALAS.map((e,i)=>(
-                <th key={e.id} className="cmb-col-val" style={{padding:"10px 8px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:500,whiteSpace:"nowrap",borderRight:i<CMB_ESCALAS.length-1?"1px solid #2a2a2a":"none"}}>{e.label}<br/><span style={{fontSize:10,fontWeight:400,color:"#888"}}>{e.sub}</span></th>
-              ))}
+              {CMB_ESCALAS.map((e,i)=>[
+                <th key={e.id} className="cmb-col-val" style={{padding:"10px 8px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:500,whiteSpace:"nowrap"}}>{e.label}<br/><span style={{fontSize:10,fontWeight:400,color:"#888"}}>{e.sub}</span></th>,
+                <th key={e.id+"av"} className="cmb-col-av" style={{padding:"10px 5px",textAlign:"center",fontSize:11,color:"#888",fontWeight:400,borderRight:i<CMB_ESCALAS.length-1?"1px solid #2a2a2a":"none"}}>AV%</th>,
+              ])}
               <th className="cmb-col-total" style={{padding:"10px 12px",textAlign:"right",fontSize:13,color:"#fff",fontWeight:700,borderLeft:"2px solid #2a2a2a",background:"#2a2a2a",whiteSpace:"nowrap"}}>Total<br/><span style={{fontSize:10,fontWeight:400,color:"#888"}}>{per.label}</span></th>
+              <th className="cmb-col-av" style={{padding:"10px 5px",textAlign:"center",fontSize:11,color:"#888",fontWeight:400,background:"#2a2a2a"}}>AV%</th>
             </tr>
           </thead>
           <tbody>
@@ -545,12 +579,18 @@ function CMBPage() {
                   </td>
                   {CMB_ESCALAS.map((e,ei)=>{
                     const v=getV(row,e.id);
-                    return <ValCell key={e.id} v={v} isFinal={isFinal} isMarco={isMarco} style={{borderRight:ei<CMB_ESCALAS.length-1?`1px solid ${sep}`:"none",background:bg}}/>;
+                    return [
+                      <ValCell key={e.id} v={v} isFinal={isFinal} isMarco={isMarco} style={{background:bg}}/>,
+                      <AvCell key={e.id+"av"} v={v} base={byE[e.id]?.rec_bruta} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} bg={bg} style={{borderRight:ei<CMB_ESCALAS.length-1?`1px solid ${sep}`:"none"}}/>,
+                    ];
                   })}
                   {(()=>{
                     const v=getV(row,null);
                     const tBg=isFinal?BRAND_D:isMarco?BRAND_D:isGrupo?BRAND_L:"#f4f7f6";
-                    return <ValCell v={v} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>;
+                    return [
+                      <ValCell key="tv" v={v} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} style={{borderLeft:`2px solid ${isFinal||isMarco?"rgba(255,255,255,0.2)":"#d1dbd8"}`,background:tBg,padding:isFinal?"12px 12px":"7px 12px"}}/>,
+                      <AvCell key="ta" v={v} base={tot.rec_bruta} isFinal={isFinal} isMarco={isMarco} isGrupo={isGrupo} bg={tBg}/>,
+                    ];
                   })()}
                 </tr>
               );
@@ -558,7 +598,7 @@ function CMBPage() {
           </tbody>
         </table>
       </div>
-      <p style={{fontSize:11,color:"#9ca3af",marginTop:6,textAlign:"right",flexShrink:0}}>Elim Consultoria Tributária &amp; Empresarial · DRE CMB · {per.label}</p>
+      <Rodape/>
     </div>
   );
 }
@@ -588,15 +628,38 @@ function LogoElim({ collapsed }) {
   );
 }
 
+// Período exibido no topo: calculado a partir das competências carregadas (primeira → última)
+function fmtPeriodo(lista) {
+  if(!lista||!lista.length) return "—";
+  const [m1,a1]=lista[0].label.split("/"), [m2,a2]=lista[lista.length-1].label.split("/");
+  if(lista.length===1) return `${m1}/${a1}`;
+  return a1===a2 ? `${m1}–${m2}/${a1}` : `${m1}/${a1}–${m2}/${a2}`;
+}
+
 // ── APP ──────────────────────────────────────────────────────────
-const PAGES=["DRE Geral","DRE CMB"];
-const ICONS={"DRE Geral":"ti-report","DRE CMB":"ti-building"};
+// Menu lateral: itens com "children" viram grupos expansíveis (sub-abas).
+// Para incluir novas abas no futuro (ex.: Balanço, Indicadores), basta adicionar um item aqui
+// e renderizar a página correspondente no bloco de páginas ao final do App.
+const MENU=[
+  {id:"dre",label:"DRE",icon:"ti-report",children:[
+    {id:"DRE Geral",label:"DRE Geral"},
+    {id:"DRE CMB",label:"DRE CMB"},
+  ]},
+];
 
 export default function App() {
   const [page,setPage]=useState("DRE Geral");
   const [sideOpen,setSideOpen]=useState(true);
   const [mobileOpen,setMobileOpen]=useState(false);
+  const [openG,setOpenG]=useState(new Set(["dre"]));
   const goTo=p=>{setPage(p);setMobileOpen(false);};
+  // DRE CMB usa a sua própria série; as demais telas usam a série da DRE Geral
+  const periodoTopo=page==="DRE CMB"?fmtPeriodo(CMB_RAW):fmtPeriodo(RAW);
+  const toggleMenuGroup=id=>{
+    // Com a barra recolhida, clicar no grupo expande a barra e abre o grupo
+    if(!sideOpen){setSideOpen(true);setOpenG(s=>new Set(s).add(id));return;}
+    setOpenG(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
+  };
   return (
     <>
       <GlobalStyle/>
@@ -607,13 +670,37 @@ export default function App() {
             <LogoElim collapsed={!sideOpen}/>
             <span style={{display:"none",color:"#fff",fontSize:13,fontWeight:600}}>Elim Consultores</span>
           </div>
-          <nav style={{flex:1,padding:"10px 0"}}>
-            {PAGES.map(p=>(
-              <button key={p} onClick={()=>goTo(p)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:sideOpen?"11px 16px":"11px 13px",background:page===p?"#2a2a2a":"transparent",border:"none",cursor:"pointer",color:page===p?"#7fcfb8":"#888",fontSize:13,fontWeight:page===p?500:400,textAlign:"left",borderLeft:page===p?`3px solid ${BRAND}`:"3px solid transparent",transition:"all 0.15s"}}>
-                <i className={`ti ${ICONS[p]}`} style={{fontSize:17,flexShrink:0}}/>
-                {sideOpen&&<span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p}</span>}
-              </button>
-            ))}
+          <nav style={{flex:1,padding:"10px 0",overflowY:"auto"}}>
+            {MENU.map(item=>{
+              if(!item.children){
+                const ativo=page===item.id;
+                return (
+                  <button key={item.id} onClick={()=>goTo(item.id)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:sideOpen?"11px 16px":"11px 13px",background:ativo?"#2a2a2a":"transparent",border:"none",cursor:"pointer",color:ativo?"#7fcfb8":"#888",fontSize:13,fontWeight:ativo?500:400,textAlign:"left",borderLeft:ativo?`3px solid ${BRAND}`:"3px solid transparent",transition:"all 0.15s"}}>
+                    <i className={`ti ${item.icon}`} style={{fontSize:17,flexShrink:0}}/>
+                    {sideOpen&&<span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{item.label}</span>}
+                  </button>
+                );
+              }
+              const aberto=openG.has(item.id)&&sideOpen;
+              const filhoAtivo=item.children.some(c=>c.id===page);
+              return (
+                <div key={item.id}>
+                  <button onClick={()=>toggleMenuGroup(item.id)} aria-expanded={aberto} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:sideOpen?"11px 16px":"11px 13px",background:"transparent",border:"none",cursor:"pointer",color:filhoAtivo?"#7fcfb8":"#888",fontSize:13,fontWeight:filhoAtivo?500:400,textAlign:"left",borderLeft:(filhoAtivo&&!sideOpen)?`3px solid ${BRAND}`:"3px solid transparent",transition:"all 0.15s"}}>
+                    <i className={`ti ${item.icon}`} style={{fontSize:17,flexShrink:0}}/>
+                    {sideOpen&&<span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1}}>{item.label}</span>}
+                    {sideOpen&&<i className={`ti ${aberto?"ti-chevron-down":"ti-chevron-right"}`} style={{fontSize:12,flexShrink:0}}/>}
+                  </button>
+                  {aberto&&item.children.map(c=>{
+                    const ativo=page===c.id;
+                    return (
+                      <button key={c.id} onClick={()=>goTo(c.id)} style={{display:"flex",alignItems:"center",width:"100%",padding:"9px 16px 9px 43px",background:ativo?"#2a2a2a":"transparent",border:"none",cursor:"pointer",color:ativo?"#7fcfb8":"#888",fontSize:12.5,fontWeight:ativo?500:400,textAlign:"left",borderLeft:ativo?`3px solid ${BRAND}`:"3px solid transparent",transition:"all 0.15s"}}>
+                        <span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </nav>
           <div style={{padding:"10px",borderTop:"1px solid #2a2a2a"}}>
             <button onClick={()=>setSideOpen(o=>!o)} style={{background:"transparent",border:"none",color:"#888",cursor:"pointer",fontSize:16,padding:6,display:"flex",alignItems:"center",justifyContent:"center",width:"100%"}} aria-label="Toggle sidebar">
@@ -631,7 +718,7 @@ export default function App() {
               <p className="topbar-label-short" style={{fontSize:12,color:MUTED,margin:0,display:"none"}}>Tropical Bus</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-              <span className="period-badge" style={{fontSize:11,background:BRAND_L,color:BRAND_D,padding:"3px 10px",borderRadius:20,fontWeight:500,whiteSpace:"nowrap"}}>Jan–Jun/2026</span>
+              <span className="period-badge" style={{fontSize:11,background:BRAND_L,color:BRAND_D,padding:"3px 10px",borderRadius:20,fontWeight:500,whiteSpace:"nowrap"}}>{periodoTopo}</span>
               <div style={{width:30,height:30,borderRadius:"50%",background:BRAND,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:"#fff"}}>TB</div>
             </div>
           </div>
