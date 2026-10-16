@@ -89,17 +89,17 @@ function GlobalStyle() {
 //   key:   "AAAA-MM",    // Ex: "2026-05"  ← formato ISO, sem repetir chaves
 //   ano:    AAAA,        // Ex: 2026
 //   extra:  0,           // Receita Extra informada pelo contador
-//   rec:  { mun: 0, int: 0 },
+//   rec:  { mun: 0, int: 0, loc: 0 },   // loc = Locação de Veículos (opcional; ausente = zero)
 //   ded:  { iss: 0, pis: 0, cof: 0, icms: 0 },
 //   cus:  { man: 0, com: 0, ped: 0 },
-//   tri:  { ipva: 0, alv: 0, difal: 0, ipi: 0, autos: 0, pisT: 0, cofT: 0 },
+//   tri:  { ipva: 0, alv: 0, difal: 0, ipi: 0, autos: 0, pisT: 0, cofT: 0, iof: 0 },   // iof opcional
 //   ger:  { alug: 0, tel: 0, pj: 0, soft: 0, matE: 0, movUtl: 0, brin: 0, fret: 0,
 //           acaoJud: 0,
 //           lanch: 0, segV: 0, div: 0, cont: 0, adm: 0, adv: 0,
-//           rast: 0, pred: 0, mult: 0 },
+//           rast: 0, pred: 0, mult: 0, segO: 0 },   // segO = Seguros (exceto veículos), opcional
 //   pes:  { sal: 0, hext: 0, ins: 0, not: 0, grat: 0, vt: 0, va: 0,
 //           med: 0, fer: 0, dec: 0, inss: 0, fgts: 0, dsr: 0, sst: 0,
-//           adF: 0, abonoPec: 0, outP: 0, grF: 0 },
+//           adF: 0, abonoPec: 0, outP: 0, grF: 0, avP: 0, fgtsM: 0 },   // avP = Aviso Prévio (despesa); fgtsM = FGTS - Multa; opcionais
 //   enc:  { av: 0, falt: 0, out: 0 },
 //   dfin: { tar: 0, jmul: 0, enc: 0, desc: 0 },
 //   rfin: { desc: 0, jap: 0, jObt: 0, rest: 0, varM: 0 },
@@ -149,21 +149,29 @@ const RAW = [
     pes:{sal:80668.10,hext:3771.69,ins:972.60,not:865.46,grat:700,vt:3436.90,va:10682.17,med:25247.90,fer:9863.99,dec:7649.56,inss:29905.76,fgts:8445.12,dsr:1515.53,sst:0,adF:1622.40,abonoPec:0,outP:2275.06,grF:500},
     enc:{av:3594.74,falt:1437.90,out:5500.55}, dfin:{tar:184.00,jmul:4315.00,enc:40837.21,desc:0},
     rfin:{desc:1800.81,jap:3.65,jObt:0,rest:0,varM:2896.64} },
-  { label:"Jun/2026", key:"2026-06", ano:2026, extra:137842.99,
-    rec:{mun:313584.47,int:379938.09}, ded:{iss:15679.22,pis:4426.16,cof:20428.43,icms:15742.58},
+  { label:"Jun/2026", key:"2026-06", ano:2026, extra:121842.99,
+    rec:{mun:313584.47,int:379938.09,loc:38800.00}, ded:{iss:15679.22,pis:4868.36,cof:22465.23,icms:15742.58},
     cus:{man:108677.13,com:156890.00,ped:19588.89},
     tri:{ipva:21214.30,alv:7013.81,difal:994.77,ipi:238.66,autos:1185.18,pisT:19.70,cofT:121.22},
     ger:{alug:1100,tel:692.87,pj:351.36,soft:750.80,matE:295.61,movUtl:0,brin:0,fret:168.80,lanch:3120,segV:6755.37,div:444.94,cont:13860.04,adm:7848.33,adv:864.53,acaoJud:14613.83,rast:2019,pred:3806.23,mult:0},
-    pes:{sal:75669.56,hext:4634.60,ins:972.60,not:943.85,grat:700,vt:3133.27,va:9865.40,med:13535.55,fer:8857.31,dec:7875.69,inss:26796.32,fgts:7559.61,dsr:1413.86,sst:1245,adF:0,abonoPec:1619.89,outP:2873.76,grF:500},
+    pes:{sal:74888.06,hext:4634.60,ins:972.60,not:943.85,grat:700,vt:3133.27,va:9865.40,med:13535.55,fer:8857.31,dec:7875.69,inss:26796.32,fgts:7559.61,dsr:1413.86,sst:1245,adF:0,abonoPec:1619.89,outP:2873.76,grF:500},
     enc:{av:0,falt:54.47,out:1515.00}, dfin:{tar:344.00,jmul:3921.91,enc:40837.21,desc:0},
     rfin:{desc:175.53,jap:7.22,jObt:0.01,rest:0,varM:3030.49} },
+  { label:"Jul/2026", key:"2026-07", ano:2026, extra:96749.99,
+    rec:{mun:299263.99,int:460752.65,loc:77600.00}, ded:{iss:14963.20,pis:5728.28,cof:26428.14,icms:19470.13},
+    cus:{man:76210.27,com:210320.27,ped:17837.62},
+    tri:{ipva:21214.30,alv:8684.20,difal:4263.32,ipi:349.07,autos:2660.28,pisT:18.63,cofT:114.65,iof:23.21},
+    ger:{alug:1100,tel:694.69,pj:3650,soft:507.10,matE:149.97,movUtl:900.90,brin:0,fret:44.82,lanch:9.99,segV:7259.24,segO:235.40,div:198.98,cont:13860.04,adm:7848.33,adv:864.53,acaoJud:0,rast:2019,pred:0,mult:0},
+    pes:{sal:70057.51,hext:4273.14,ins:972.60,not:786.82,grat:700,vt:3167.43,va:9853.00,med:13535.55,avP:4281.64,fer:9944.95,dec:7499.65,inss:28956.56,fgts:8255.41,fgtsM:712.64,dsr:785.13,sst:1066,adF:1622.40,abonoPec:0,outP:2514.54,grF:500},
+    enc:{av:0,falt:0,out:4030.71}, dfin:{tar:10655.34,jmul:6494.64,enc:40837.21,desc:0},
+    rfin:{desc:768.85,jap:11.54,jObt:0,rest:0,varM:2866.19} },
   // ← PRÓXIMA COMPETÊNCIA: cole o bloco do template aqui
 ];
 
 function calcP(p) {
-  const recBruta=p.rec.mun+p.rec.int+p.extra, deducoes=-(p.ded.iss+p.ded.pis+p.ded.cof+p.ded.icms), recLiq=recBruta+deducoes;
+  const recBruta=p.rec.mun+p.rec.int+(p.rec.loc||0)+p.extra, deducoes=-(p.ded.iss+p.ded.pis+p.ded.cof+p.ded.icms), recLiq=recBruta+deducoes;
   const custos=-(p.cus.man+p.cus.com+p.cus.ped), resBruto=recLiq+custos;
-  const dTrib=-(p.tri.ipva+p.tri.alv+p.tri.difal+p.tri.ipi+p.tri.autos+p.tri.pisT+p.tri.cofT);
+  const dTrib=-(p.tri.ipva+p.tri.alv+p.tri.difal+p.tri.ipi+p.tri.autos+p.tri.pisT+p.tri.cofT+(p.tri.iof||0));
   const dGer=-sumObj(p.ger), dPes=-sumObj(p.pes), recEnc=p.enc.av+p.enc.falt+p.enc.out;
   const ebitda=resBruto+dTrib+dGer+dPes+recEnc;
   const dFin=-(p.dfin.tar+p.dfin.jmul+p.dfin.enc+p.dfin.desc);
@@ -173,13 +181,14 @@ function calcP(p) {
 }
 const CALCS=RAW.map(p=>({...p,c:calcP(p)}));
 
-const CANONICAL_ORDER=["g_rec","mun","int","extra","recBruta","g_ded","iss","pis","cof","icms","recLiq","g_cus","man","com","ped","resBruto","g_tri","ipva","alv","difal","ipi","autos","pisT","cofT","g_ger","alug","tel","pj","soft","matE","movUtl","brin","fret","lanch","segV","div","cont","admG","adv","acaoJud","rast","pred","mult","g_pes","sal","hext","ins","not","grat","vt","va","med","fer","dec","inss","fgts","dsr","sst","adF","abonoPec","outP","grF","g_enc","av","falt","out","ebitda","g_dfin","tar","jmul","encF","descC","g_rfin","descO","jap","jObt","rest","varM","lucLiq"];
+const CANONICAL_ORDER=["g_rec","mun","int","loc","extra","recBruta","g_ded","iss","pis","cof","icms","recLiq","g_cus","man","com","ped","resBruto","g_tri","ipva","alv","difal","ipi","autos","pisT","cofT","iof","g_ger","alug","tel","pj","soft","matE","movUtl","brin","fret","lanch","segV","segO","div","cont","admG","adv","acaoJud","rast","pred","mult","g_pes","sal","hext","ins","not","grat","vt","va","med","avP","fer","dec","inss","fgts","fgtsM","dsr","sst","adF","abonoPec","outP","grF","g_enc","av","falt","out","ebitda","g_dfin","tar","jmul","encF","descC","g_rfin","descO","jap","jObt","rest","varM","lucLiq"];
 
 function getDRERows(p) {
   const c=p.c; const rows=[]; const add=(t,id,l,v,o={})=>rows.push({tipo:t,id,label:l,valor:v,...o});
   add("grupo","g_rec","Receita Bruta de Serviços");
   add("linha","mun","  Transp. Municipal",p.rec.mun,{isFav:true});
   add("linha","int","  Transp. Intermunicipal/Interestadual",p.rec.int,{isFav:true});
+  if(p.rec.loc>0) add("linha","loc","  Locação de Veículos",p.rec.loc,{isFav:true});
   add("linha","extra","  Outras Receitas (Extra)",p.extra,{isFav:true,extra:true});
   add("marco","recBruta","RECEITA BRUTA",c.recBruta);
   add("grupo","g_ded","Deduções da Receita");
@@ -201,6 +210,7 @@ function getDRERows(p) {
   if(p.tri.autos>0) add("linha","autos","  Autos e Infrações",-p.tri.autos,{isFav:false});
   if(p.tri.pisT>0)  add("linha","pisT","  PIS (tributário)",-p.tri.pisT,{isFav:false});
   if(p.tri.cofT>0)  add("linha","cofT","  COFINS (tributário)",-p.tri.cofT,{isFav:false});
+  if(p.tri.iof>0)   add("linha","iof","  IOF",-p.tri.iof,{isFav:false});
   add("grupo","g_ger","Despesas Gerais");
   add("linha","alug","  Aluguéis",-p.ger.alug,{isFav:false});
   add("linha","tel","  Telecomunicações",-p.ger.tel,{isFav:false});
@@ -212,6 +222,7 @@ function getDRERows(p) {
   add("linha","fret","  Fretes e Transportes",-p.ger.fret,{isFav:false});
   if(p.ger.lanch>0) add("linha","lanch","  Lanches e Refeições",-p.ger.lanch,{isFav:false});
   add("linha","segV","  Seguros de Veículos",-p.ger.segV,{isFav:false});
+  if(p.ger.segO>0) add("linha","segO","  Seguros Diversos (exceto veículos)",-p.ger.segO,{isFav:false});
   if(p.ger.div>0)  add("linha","div","  Despesas Diversas",-p.ger.div,{isFav:false});
   add("linha","cont","  Assessoria Contábil",-p.ger.cont,{isFav:false});
   add("linha","admG","  Assessoria Administrativa",-p.ger.adm,{isFav:false});
@@ -229,10 +240,12 @@ function getDRERows(p) {
   add("linha","vt","  Vale Transporte",-p.pes.vt,{isFav:false});
   add("linha","va","  Vale Alimentação",-p.pes.va,{isFav:false});
   add("linha","med","  Assistência Médica",-p.pes.med,{isFav:false});
+  if(p.pes.avP>0) add("linha","avP","  Aviso Prévio",-p.pes.avP,{isFav:false});
   add("linha","fer","  Férias",-p.pes.fer,{isFav:false});
   add("linha","dec","  13º Salário",-p.pes.dec,{isFav:false});
   add("linha","inss","  INSS",-p.pes.inss,{isFav:false});
   add("linha","fgts","  FGTS",-p.pes.fgts,{isFav:false});
+  if(p.pes.fgtsM>0) add("linha","fgtsM","  FGTS – Multa",-p.pes.fgtsM,{isFav:false});
   add("linha","dsr","  DSR",-p.pes.dsr,{isFav:false});
   add("linha","sst","  Saúde e Segurança",-p.pes.sst,{isFav:false});
   add("linha","adF","  Adicional de Função",-p.pes.adF,{isFav:false});
